@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>高中物理知识体系·概念图谱</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;background:#f5f7fa;color:#333;padding:12px;line-height:1.7}
+.header{text-align:center;padding:16px 0 6px}
+.header h1{font-size:20px}
+.header p{font-size:12px;color:#888;margin-top:4px}
+.sec{background:#fff;border-radius:12px;padding:14px;margin:12px 0;box-shadow:0 1px 4px rgba(0,0,0,.07)}
+.sec h2{font-size:16px;margin-bottom:10px;padding-bottom:6px;border-bottom:2px solid #f0f0f0}
+.tree{display:flex;flex-direction:column;align-items:center}
+.tnode{background:#eef4ff;border:2px solid #4a90d9;border-radius:10px;padding:8px 14px;font-size:13px;font-weight:600;text-align:center;max-width:92%}
+.tnode.root{background:#4a90d9;color:#fff;border-color:#4a90d9;font-size:14px}
+.tnode .f{font-size:11px;font-weight:400;opacity:.85;margin-top:2px}
+.tarrow{font-size:18px;color:#4a90d9;line-height:1.2;padding:2px 0}
+.tarrow small{display:block;font-size:10px;color:#888}
+.trow{display:flex;gap:8px;justify-content:center;width:100%;flex-wrap:wrap}
+.trow .tnode{flex:1;min-width:130px}
+.tlabel{font-size:11px;color:#888;background:#f0f4f8;border-radius:6px;padding:2px 8px;margin:4px 0}
+.compare{display:flex;gap:8px}
+.compare>div{flex:1;border-radius:10px;padding:10px;font-size:12px}
+.cmp-e{background:#f3e8ff;border:1px solid #b794d9}
+.cmp-m{background:#e8f4ff;border:1px solid #7fb3d9}
+.cmp-e h4{color:#7b2d9e;font-size:13px;margin-bottom:6px}
+.cmp-m h4{color:#2471a3;font-size:13px;margin-bottom:6px}
+.vs{align-self:center;font-weight:800;color:#e74c3c;font-size:14px;flex-shrink:0}
+.kv{background:#f8f9fa;border-radius:8px;padding:8px 10px;margin:6px 0;font-size:13px}
+.kv b{color:#c0392b}
+.evo{display:flex;align-items:stretch;overflow-x:auto;gap:0;padding:6px 0}
+.estep{background:#fff;border:2px solid #e67e22;border-radius:10px;padding:8px 10px;min-width:110px;text-align:center;font-size:12px;flex-shrink:0}
+.estep b{display:block;font-size:13px;margin-bottom:2px}
+.earrow{align-self:center;font-size:20px;color:#e67e22;padding:0 4px;flex-shrink:0}
+.unify{display:grid;grid-template-columns:1fr;gap:8px}
+.ucard{border-radius:10px;padding:10px;font-size:12px}
+.u1{background:#fef9e7;border:1px solid #f0c929}
+.u2{background:#eafaf1;border:1px solid #58d68d}
+.u3{background:#f4ecf7;border:1px solid #af7ac5}
+.ucard h4{font-size:13px;margin-bottom:4px}
+.note{background:#fffbe6;border-left:4px solid #f0c929;padding:8px 10px;border-radius:0 8px 8px 0;font-size:12px;margin:8px 0;color:#666}
+.footer{text-align:center;font-size:11px;color:#aaa;margin:20px 0 10px}
+</style>
+</head>
+<body>
+<div class="header">
+<h1>🧬 高中物理知识体系·概念图谱</h1>
+<p>概念之间是什么关系：父亲 / 儿子 / 兄弟</p>
+</div>
+
+<div class="sec">
+<h2>🔴 力学三观：一切从牛顿出发</h2>
+<div class="tree">
+<div class="tnode root">牛顿第二定律 F=ma<div class="f">一切力学的根</div></div>
+<div style="display:flex;gap:24px;width:100%;justify-content:center">
+<div style="display:flex;flex-direction:column;align-items:center;flex:1">
+<div class="tarrow">↓<small>对空间积分</small></div>
+<div class="tnode">动能定理<div class="f">W_合 = ΔE_k</div></div>
+<div class="tarrow">↓</div>
+<div class="tnode">机械能守恒<div class="f">只有保守力做功</div></div>
+<div class="tarrow">↓<small>推广</small></div>
+<div class="tnode" style="border-color:#e74c3c;background:#fdedec">能量守恒<div class="f">最高宪法，无条件成立</div></div>
+</div>
+<div style="display:flex;flex-direction:column;align-items:center;flex:1">
+<div class="tarrow">↓<small>对时间积分</small></div>
+<div class="tnode">动量定理<div class="f">I_合 = Δp</div></div>
+<div class="tarrow">↓</div>
+<div class="tnode" style="border-color:#e74c3c;background:#fdedec">动量守恒<div class="f">互不蕴含的两条独立规律（能量守恒无条件；动量守恒要求合外力为零）</div></div>
+</div>
+</div>
+</div>
+<div class="note"><b>三句话：</b>① 动能定理和动量定理都是牛顿的"积分版"（空间/时间；质量不变）；② 机械能守恒是能量守恒的<b>简化形式</b>，别把儿子当爹；③ 动量守恒和能量守恒<b>互不蕴含、独立</b>，谁也不是谁推出来的。</div>
+</div>
+
+<div class="sec">
+<h2>🟣 电磁学：场的演进史（静→动→变→用）</h2>
+<div class="evo">
+<div class="estep"><b>静电荷</b>库仑定律<br>电场 E=F/q<br>电势 φ</div><div class="earrow">→</div>
+<div class="estep"><b>动起来</b>恒定电流<br>欧姆定律<br>I=U/R</div><div class="earrow">→</div>
+<div class="estep"><b>生磁场</b>安培力 F=BIL（L⊥B）<br>洛伦兹力 f=qvB（v⊥B）</div><div class="earrow">→</div>
+<div class="estep"><b>变起来</b>电磁感应<br>法拉第 E=nΔΦ/Δt<br>楞次定律</div><div class="earrow">→</div>
+<div class="estep"><b>用起来</b>交变电流<br>变压器<br>远距离输电</div>
+</div>
+<div class="note">每一层都是上一层的"动起来"版本。记住这个演进链，电磁学就不是 14 个散文件，而是一部连续剧。</div>
+</div>
+
+<div class="sec">
+<h2>⚡ 电 vs 磁：双胞胎兄弟</h2>
+<div class="compare">
+<div class="cmp-e"><h4>🟣 电场</h4>
+E = F/q（力÷源定义）<br>
+静电场线：不闭合，起于正电荷止于负电荷<br>感生电场线：<b>闭合</b>（变化磁场激发）<br>
+有电势 φ、电势能 E_p=qφ<br>
+库仑定律：平方反比</div>
+<div class="vs">VS</div>
+<div class="cmp-m"><h4>🔵 磁场</h4>
+B = F/IL（力÷源定义）<br>
+磁感线：闭合，无起点<br>
+<b>无"磁势"</b>（洛伦兹力不做功）<br>
+安培定则：右手螺旋（磁独有）</div>
+</div>
+<div class="note">长得很像（都用场描述），性格不同（电场做功有电势，磁场不做功没有磁势）。<b>类比学一半，区别记一半。</b></div>
+</div>
+
+<div class="sec">
+<h2>🌐 跨板块统一线索（最高层）</h2>
+<div class="unify">
+<div class="ucard u1"><h4>📐 平方反比律</h4>
+万有引力 F=Gm₁m₂/r² <b>⟷</b> 库仑定律 F=kq₁q₂/r²<br>
+不是巧合——都是"场"在三维空间扩散的自然结果。引力场和电场是亲兄弟。</div>
+<div class="ucard u2"><h4>⚖️ 守恒律（物理学的宪法）</h4>
+能量守恒（无条件）· 动量守恒（合外力零）· 电荷守恒（无条件）<br>
+不管过程多复杂，守恒律永远成立。<b>做题先找守恒量，是专家的本能。</b></div>
+<div class="ucard u3"><h4>🌀 场</h4>
+引力场（源=质量）· 电场（源=电荷）· 磁场（源=电流）<br>
+"超距作用"其实是物体通过场相互作用。<b>看到"场"字，想"源"和"力"。</b></div>
+</div>
+</div>
+
+<div class="sec">
+<h2>🟠 热学：微观→宏观</h2>
+<div class="tree">
+<div class="tnode">分子动理论<div class="f">微观：分子在动</div></div>
+<div class="tarrow">↓<small>解释</small></div>
+<div class="tnode">气体实验定律<div class="f">宏观：pV/T = 常量（2023–2026年Q13固定9分）</div></div>
+<div class="tarrow">↓</div>
+<div class="trow">
+<div class="tnode">热力学第一定律<div class="f">ΔU=W+Q（能量守恒版）</div></div>
+<div class="tnode">热力学第二定律<div class="f">过程有方向性</div></div>
+</div>
+</div>
+</div>
+
+<div class="sec">
+<h2>🔵 光学：全反射是折射的临界情形</h2>
+<div class="tree">
+<div class="tnode">折射定律<div class="f">n₁sinθ₁ = n₂sinθ₂</div></div>
+<div class="tarrow">↓<small>折射角 → 90°（临界情况）</small></div>
+<div class="tnode" style="border-color:#e67e22;background:#fef5e7">全反射<div class="f">光密→光疏 + 入射角&gt;临界角</div></div>
+</div>
+<div class="note"><b>通用套路：临界情况往往藏着新现象。</b>物理学的很多"新发现"都是把旧公式推到极限看到的。</div>
+</div>
+
+<div class="sec">
+<h2>📝 三问自查（每学完一块问自己）</h2>
+<div class="kv"><b>1. 它的"父亲"是谁？</b>——从哪个概念推出来的？</div>
+<div class="kv"><b>2. 它的"儿子"是谁？</b>——能推出什么？</div>
+<div class="kv"><b>3. 它的"兄弟"是谁？</b>——和哪个概念类比？</div>
+<div class="note">答不上来 = 还没学透，回去看对应章节。答得上来 = 知识进脑了。</div>
+</div>
+
+<div class="footer">高中物理知识体系·概念图谱 · 可视化版<br>文字深挖版见《高中物理知识体系·概念图谱.md》<br>GaokaoPhysicsKB · 2026-10-06</div>
+</body>
+</html>

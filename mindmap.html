@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>高中物理知识体系·思维导图</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;background:#f5f7fa;color:#333;padding:12px;min-height:100vh}
+.header{text-align:center;padding:16px 0 8px}
+.header h1{font-size:20px;font-weight:700}
+.header p{font-size:12px;color:#888;margin-top:4px}
+.legend{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin:10px 0;font-size:11px}
+.legend span{padding:3px 8px;border-radius:10px;color:#fff;font-weight:600}
+.lg-hot{background:#e74c3c}.lg-mid{background:#e67e22}.lg-low{background:#3498db}.lg-cold{background:#95a5a6}
+.tree{margin-top:8px}
+.node{margin:4px 0}
+.node-head{display:flex;align-items:center;padding:8px 10px;background:#fff;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,.08);cursor:pointer;user-select:none}
+.node-head:active{background:#f0f4f8}
+.toggle{width:20px;height:20px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:14px;color:#888;margin-right:6px;font-weight:700}
+.node-title{font-size:14px;font-weight:600;flex:1}
+.freq{font-size:10px;padding:2px 7px;border-radius:8px;color:#fff;margin-left:6px;flex-shrink:0}
+.f-hot{background:#e74c3c}.f-mid{background:#e67e22}.f-low{background:#3498db}.f-cold{background:#95a5a6}.f-na{background:#bdc3c7}
+.children{margin-left:18px;border-left:2px solid #e0e6ed;padding-left:8px;display:none}
+.children.open{display:block}
+.leaf{padding:7px 10px;background:#fff;border-radius:8px;margin:4px 0;font-size:13px;box-shadow:0 1px 2px rgba(0,0,0,.06)}
+.leaf .rel{font-size:11px;color:#888;margin-top:2px}
+.leaf .formula{font-size:12px;color:#2c3e50;background:#f0f4f8;border-radius:4px;padding:3px 6px;margin-top:4px;display:inline-block}
+.branch-l1>.node-head{border-left:4px solid}
+.b-mech>.node-head{border-color:#e74c3c}
+.b-em>.node-head{border-color:#8e44ad}
+.b-heat>.node-head{border-color:#e67e22}
+.b-opt>.node-head{border-color:#3498db}
+.b-wave>.node-head{border-color:#16a085}
+.b-modern>.node-head{border-color:#95a5a6}
+.b-exp>.node-head{border-color:#1abc9c}
+.detail{font-size:12px;color:#666;background:#fffbe6;border-radius:8px;padding:10px;margin:8px 0;line-height:1.7;display:none}
+.detail.open{display:block}
+.detail b{color:#c0392b}
+.footer{text-align:center;font-size:11px;color:#aaa;margin:20px 0 10px;line-height:1.6}
+</style>
+</head>
+<body>
+<div class="header">
+<h1>🗺️ 高中物理知识体系·思维导图</h1>
+<p>点击展开/收起 · 颜色=考频权重（2021–2026广东卷91题）</p>
+</div>
+<div class="legend">
+<span class="lg-hot">🔴 高频 ≥10次</span>
+<span class="lg-mid">🟠 中频 5–9次</span>
+<span class="lg-low">🔵 低频 2–4次</span>
+<span class="lg-cold">⚪ 冷门 0–1次</span>
+</div>
+<div class="tree" id="tree"></div>
+<div class="footer">数据来源：2021–2026广东高考物理真题（91题）考频统计<br>知识库：GaokaoPhysicsKB · 2026-10-06</div>
+
+<script>
+const DATA = [
+{title:"🔴 力学", cls:"b-mech", freq:"49次", fc:"f-hot", detail:"<b>逻辑地位：一切的根。</b>电磁学中的带电粒子运动=力学+电磁力；热学分子运动=力学+统计。力学不好，全线崩。<br><b>深层结构：三观</b>——力与运动观（牛顿，问过程）/能量观（不问过程看初末）/动量观（处理碰撞爆炸）。动能定理和动量定理都是牛顿第二定律的积分版（空间/时间；前提：质量不变，变质量如火箭不成立）。", children:[
+  {title:"运动学（描述运动，不问原因）", freq:"18次", fc:"f-hot", children:[
+    {t:"直线运动", rel:"匀变速 ⊃ 匀速（a=0的特例）、自由落体（v₀=0、a=g的特例），二者并列", f:"v=v₀+at, x=v₀t+½at²"},
+    {t:"曲线运动", rel:"复杂运动=简单运动的合成", f:"平抛=水平匀速+竖直自由落体"},
+    {t:"圆周运动", rel:"匀速圆周：向心力只改变方向不改变大小（非匀速时向心力=合力径向分量）", f:"F_向=mv²/r=mω²r"},
+  ]},
+  {title:"动力学（解释运动原因）", freq:"15次", fc:"f-hot", children:[
+    {t:"牛顿三定律", rel:"<b>一切力学的根</b>，F=ma", f:"F=ma"},
+    {t:"力的分析", rel:"按'重力→弹力→摩擦力→其他外力'顺序（口诀'人重弹摩'）", f:"f=μN（滑动）, F=kx（胡克）"},
+    {t:"共点力平衡", rel:"合力为零的特例", f:"ΣF=0"},
+  ]},
+  {title:"能量观", freq:"13次", fc:"f-hot", children:[
+    {t:"功→动能定理", rel:"牛顿第二定律对空间积分", f:"W_合=ΔE_k"},
+    {t:"机械能守恒", rel:"能量守恒在只有重力/弹力做功时的具体表现（能量守恒本身无条件成立）", f:"E_k1+E_p1=E_k2+E_p2"},
+    {t:"能量守恒", rel:"<b>最高宪法</b>，一切过程成立", f:"ΔE=0"},
+  ]},
+  {title:"动量观", freq:"11次", fc:"f-hot", children:[
+    {t:"冲量→动量定理", rel:"牛顿第二定律对时间积分", f:"I_合=Δp"},
+    {t:"动量守恒", rel:"与能量守恒是两条独立规律（条件不同：合外力为零时成立；能量守恒无条件）", f:"m₁v₁+m₂v₂=m₁v₁'+m₂v₂'"},
+    {t:"碰撞模型", rel:"弹性（动能守恒）/非弹性/完全非弹性", f:"人船模型、子弹打木块"},
+  ]},
+  {title:"万有引力", freq:"6次·每年必考", fc:"f-mid", children:[
+    {t:"万有引力定律", rel:"<b>类比库仑定律</b>：都是平方反比", f:"F=Gm₁m₂/r²"},
+    {t:"开普勒定律", rel:"现象 ← 万有引力是本质", f:"r³/T²=k"},
+    {t:"宇宙速度", rel:"环绕速度v=√(GM/r)；第一宇宙速度v₁=√(GM/R)≈7.9km/s（r=R时）", f:"v=√(GM/r)"},
+  ]},
+]},
+{title:"🟣 电磁学", cls:"b-em", freq:"33次", fc:"f-hot", detail:"<b>逻辑地位：最综合。</b>把力学方法搬到电场磁场里用，是'旧瓶装新酒'。<b>演进逻辑：静→动→变→用</b>——静电荷→电流→磁场→电磁感应→交变电流，每一层都是上一层的'动起来'版本。", children:[
+  {title:"静电场", freq:"11次", fc:"f-hot", children:[
+    {t:"库仑定律", rel:"<b>类比万有引力</b>：平方反比", f:"F=kq₁q₂/r²"},
+    {t:"电场强度", rel:"场的定义：力÷源", f:"E=F/q"},
+    {t:"电势·电势能", rel:"能量视角，沿电场线降低（φ由场源决定，E_p=qφ）", f:"E_p=qφ, W=qU"},
+    {t:"电容器", rel:"电场的器件化", f:"C=Q/U, C=εS/4πkd"},
+    {t:"带电粒子在电场中运动", rel:"加速（动能定理）/偏转（类平抛）；六年五年压轴内核", f:"qU=½mv²"},
+  ]},
+  {title:"恒定电流", freq:"5次", fc:"f-mid", children:[
+    {t:"欧姆定律", rel:"电场在导体中的表现", f:"I=U/R"},
+    {t:"闭合电路", rel:"全电路能量分配（U为路端电压）", f:"E=U+Ir"},
+    {t:"电功·电功率", rel:"电流做功的能量观", f:"W=UIt, P=UI"},
+  ]},
+  {title:"磁场", freq:"10次", fc:"f-hot", children:[
+    {t:"安培力", rel:"电流在磁场中受力", f:"F=BIL（左手定则）"},
+    {t:"洛伦兹力", rel:"运动电荷受力，<b>不做功</b>（无'磁势'）；左手定则判方向", f:"f=qvBsinθ（v⊥B时f=qvB）"},
+    {t:"带电粒子圆周运动", rel:"匀强磁场+v⊥B时，洛伦兹力提供向心力", f:"r=mv/qB, T=2πm/qB"},
+  ]},
+  {title:"电磁感应", freq:"6次", fc:"f-mid", children:[
+    {t:"法拉第定律", rel:"变磁场生电场", f:"E=nΔΦ/Δt"},
+    {t:"楞次定律", rel:"增反减同，来拒去留", f:"感应电流阻碍变化"},
+  ]},
+  {title:"交变电流", freq:"6次·每年必考", fc:"f-mid", children:[
+    {t:"产生机理·四值", rel:"电磁感应的应用", f:"峰值/有效值/平均值/瞬时值"},
+    {t:"变压器", rel:"互感原理的应用", f:"U₁/U₂=n₁/n₂"},
+  ]},
+]},
+{title:"🟠 热学", cls:"b-heat", freq:"8次", fc:"f-mid", detail:"<b>逻辑：微观→宏观。</b>分子动理论解释为什么有压强，气体定律描述pVT关系，热力学定律是能量观+方向性。<b>广东卷定位：2023–2026年Q13连续4年固定考热学9分</b>（2021–2022年Q13为11分力学大题），全卷最固定的送分题.", children:[
+  {t:"分子动理论", rel:"微观解释宏观", f:"布朗运动、分子力"},
+  {t:"理想气体状态方程", rel:"<b>2023–2026年Q13固定考</b>：认等温/等容/等压→套公式；玻意耳/查理/盖-吕萨克三定律是其特例", f:"pV/T=常量"},
+  {t:"热力学第一定律", rel:"能量守恒的热学版", f:"ΔU=W+Q"},
+  {t:"热力学第二定律", rel:"过程有方向性", f:"热量不能自发从低温→高温"},
+]},
+{title:"🔵 光学", cls:"b-opt", freq:"7次", fc:"f-mid", detail:"<b>两种模型：</b>几何光学把光当'线'（光线模型），波动光学把光当'波'。广东卷主要考几何光学。", children:[
+  {t:"光的折射", rel:"n₁sinθ₁=n₂sinθ₂", f:"n=c/v"},
+  {t:"全反射", rel:"折射光消失的临界现象（临界角=折射角为90°时的入射角）", f:"条件：光密→光疏+入射角>临界角"},
+  {t:"光的波动性", rel:"干涉/衍射（26年考过）", f:"双缝干涉 Δx=λL/d"},
+]},
+{title:"🟢 机械振动与波", cls:"b-wave", freq:"6次", fc:"f-mid", children:[
+  {t:"简谐运动", rel:"一个点在动", f:"x=Asinωt"},
+  {t:"机械波", rel:"把振动传出去", f:"v=λf"},
+  {t:"干涉·多普勒", rel:"波的特性", f:"加强减弱条件"},
+]},
+{title:"⚪ 近代物理", cls:"b-modern", freq:"6次", fc:"f-mid", detail:"<b>逻辑位置：经典物理的边界。</b>'经典解释不了→必须新理论'的地方。2025年广东卷Q3首次考光电效应（六年真题新增），边界在动，要关注。", children:[
+  {t:"光电效应", rel:"光的粒子性；2025年广东卷Q3首次出现（六年真题新增）", f:"E_k=hν-W₀"},
+  {t:"原子结构", rel:"核式模型→氢原子能级（仅氢/类氢适用）", f:"E_n=E₁/n²"},
+  {t:"原子核", rel:"核反应+半衰期", f:"质量数守恒、电荷数守恒（注意质量亏损≠质量守恒）"},
+]},
+{title:"🔬 实验", cls:"b-exp", freq:"12次·每年2题", fc:"f-hot", detail:"<b>全卷最固定：每年Q11+Q12共16分，一力一电为主。</b>仪器读数是基本盘，数据处理（逐差法/图像法）是核心技能。", children:[
+  {t:"力学实验", rel:"6年5次：纸带/验证动量守恒/机械能", f:"逐差法 Δx=aT²"},
+  {t:"电学实验", rel:"6年5次：测电阻/电表改装", f:"等效替代、伏安法"},
+  {t:"仪器读数", rel:"游标卡尺/螺旋测微器/多用电表", f:"估读规则"},
+  {t:"光学实验", rel:"插针法/双缝干涉", f:"n=c/v"},
+]},
+];
+
+const tree = document.getElementById('tree');
+function makeLeaf(item){
+  const d = document.createElement('div');
+  d.className = 'leaf';
+  d.innerHTML = `<b>${item.t}</b>${item.f?`<br><span class="formula">${item.f}</span>`:''}${item.rel?`<div class="rel">${item.rel}</div>`:''}`;
+  return d;
+}
+function makeNode(n, level){
+  const wrap = document.createElement('div');
+  wrap.className = 'node' + (level===1 ? ' branch-l1 '+n.cls : '');
+  const head = document.createElement('div');
+  head.className = 'node-head';
+  const hasKids = n.children && n.children.length;
+  head.innerHTML = `<span class="toggle">${hasKids?'+':''}</span><span class="node-title">${n.title}</span>${n.freq?`<span class="freq ${n.fc}">${n.freq}</span>`:''}`;
+  wrap.appendChild(head);
+  if(n.detail){
+    const det = document.createElement('div');
+    det.className = 'detail';
+    det.innerHTML = n.detail;
+    wrap.appendChild(det);
+    head.addEventListener('click', ()=>det.classList.toggle('open'));
+  }
+  if(hasKids){
+    const ch = document.createElement('div');
+    ch.className = 'children';
+    n.children.forEach(c=>{
+      if(c.children){ ch.appendChild(makeNode(c, level+1)); }
+      else{ ch.appendChild(makeLeaf(c)); }
+    });
+    wrap.appendChild(ch);
+    if(!n.detail){ head.addEventListener('click', ()=>{
+      ch.classList.toggle('open');
+      head.querySelector('.toggle').textContent = ch.classList.contains('open') ? '−' : '+';
+    });} else {
+      head.addEventListener('click', ()=>{
+        ch.classList.toggle('open');
+        const t = head.querySelector('.toggle');
+        if(t) t.textContent = ch.classList.contains('open') ? '−' : '+';
+      });
+    }
+  }
+  return wrap;
+}
+DATA.forEach(n=>tree.appendChild(makeNode(n,1)));
+</script>
+</body>
+</html>
