@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>在 Obsidian 中打开</title>
+<style>
+body { font-family: -apple-system, sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; margin: 0; background: #f5f5f7; }
+.card { background: #fff; border-radius: 16px; padding: 32px; margin: 16px; text-align: center; box-shadow: 0 2px 12px rgba(0,0,0,0.08); max-width: 340px; }
+h1 { font-size: 18px; margin: 0 0 8px; }
+p { font-size: 14px; color: #666; margin: 0 0 20px; }
+button { background: #7c3aed; color: #fff; border: none; border-radius: 12px; padding: 14px 32px; font-size: 17px; font-weight: 600; cursor: pointer; }
+button:active { opacity: 0.8; }
+.err { color: #c00; }
+</style>
+</head>
+<body>
+<div class="card" id="card">
+<h1>正在打开 Obsidian…</h1>
+<p id="msg">如果没有自动跳转，请点下面的按钮</p>
+<button id="btn" style="display:none">在 Obsidian 中打开</button>
+</div>
+<script>
+function getFile() {
+  var h = location.hash;
+  if (h && h.indexOf('#file=') === 0) return decodeURIComponent(h.slice(6));
+  var m = location.search.match(/[?&]file=([^&]*)/);
+  if (m) return decodeURIComponent(m[1]);
+  return null;
+}
+var file = getFile();
+var btn = document.getElementById('btn');
+var msg = document.getElementById('msg');
+if (!file) {
+  document.querySelector('h1').textContent = '没有找到笔记路径';
+  msg.innerHTML = '<span class="err">请从带有 file 参数的知识库链接进入。</span>';
+} else {
+  var deep = 'obsidian://open?vault=' + encodeURIComponent('GaokaoPhysicsKB') + '&file=' + encodeURIComponent(file);
+  btn.style.display = '';
+  btn.onclick = function() { window.location.href = deep; };
+  // 自动尝试一次（无手势可能被拦截，按钮是兜底）
+  setTimeout(function() { window.location.href = deep; }, 300);
+}
+</script>
+</body>
+</html>
