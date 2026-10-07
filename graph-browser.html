@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>高中物理知识图谱浏览器</title>
-<!-- v13 单行小字标签 -->
+<!-- v14 子目录分类节点 -->
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;background:#f5f7fa;color:#333;height:100vh;display:flex;flex-direction:column}
@@ -99,10 +99,25 @@ Object.keys(layerNodes).forEach(k => {
   addEdge(ROOT_ID, layerNodes[k], '包含', 'out');
   addEdge(layerNodes[k], ROOT_ID, '包含', 'in');
 });
-// 层→节点
+// 层→分类→节点（有子目录的层自动建分类节点）
 GRAPH_DATA.nodes.forEach(n => {
+  const parts = n.id.split('/');
   const lid = layerNodes[n.layer];
-  if (lid) { addEdge(lid, n.id, '包含', 'out'); addEdge(n.id, lid, '包含', 'in'); }
+  if (!lid) return;
+  if (parts.length > 2) {
+    const cat = parts[1];
+    const catId = '__CAT_' + n.layer + '_' + cat + '__';
+    if (!nodes.has(catId)) {
+      nodes.set(catId, {id: catId, title: cat, layer: n.layer, isCategory: true});
+      addEdge(lid, catId, '包含', 'out');
+      addEdge(catId, lid, '包含', 'in');
+    }
+    addEdge(catId, n.id, '包含', 'out');
+    addEdge(n.id, catId, '包含', 'in');
+  } else {
+    addEdge(lid, n.id, '包含', 'out');
+    addEdge(n.id, lid, '包含', 'in');
+  }
 });
 // 原始边
 GRAPH_DATA.edges.forEach(e => {
@@ -208,7 +223,7 @@ function render(centerId) {
     const col = nd ? LAYER_COLORS[nd.layer] : '#999';
     const title = nd ? nd.title : nb.to;
     const tid = nb.to;
-    const isLeaf = nd && !nd.isLayer && nd.layer !== 'root';
+    const isLeaf = nd && !nd.isLayer && !nd.isCategory && nd.layer !== 'root';
     const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
     line.setAttribute('x1', cx); line.setAttribute('y1', cy);
     line.setAttribute('x2', x); line.setAttribute('y2', y);
@@ -284,8 +299,8 @@ function showInfo(id, neighbors) {
   const n = nodes.get(id);
   if (!n) return;
   neighbors = neighbors || adj.get(id) || [];
-  const tag = n.layer === 'root' ? '根节点' : (n.isLayer ? '层节点' : `${n.layer}层·${LAYER_NAMES[n.layer]}`);
-  const isKnowledge = !n.isLayer && n.layer !== 'root';
+  const tag = n.layer === 'root' ? '根节点' : (n.isLayer ? '层节点' : (n.isCategory ? '分类' : `${n.layer}层·${LAYER_NAMES[n.layer]}`));
+  const isKnowledge = !n.isLayer && !n.isCategory && n.layer !== 'root';
   const openBtn = isKnowledge
     ? `<button onclick="openPage('${n.id.replace(/'/g, "\\'")}')" style="margin-top:8px;padding:8px 16px;background:#1a73e8;color:#fff;border:none;border-radius:6px;font-size:13px;font-weight:600;cursor:pointer;width:100%">📖 打开对应笔记</button>
        <button onclick="expandNode('${n.id.replace(/'/g, "\\'")}')" style="margin-top:6px;padding:8px 16px;background:#e8f0fe;color:#1a73e8;border:1px solid #1a73e8;border-radius:6px;font-size:13px;cursor:pointer;width:100%">🌿 在图中展开关系网</button>`
@@ -303,7 +318,7 @@ function showInfo(id, neighbors) {
     const nd = nodes.get(nb.to);
     const arrow = nb.dir === 'out' ? '→' : '←';
     const t = nd ? nd.title : nb.to;
-    const ndIsLeaf = nd && !nd.isLayer && nd.layer !== 'root';
+    const ndIsLeaf = nd && !nd.isLayer && !nd.isCategory && nd.layer !== 'root';
     const liAction = ndIsLeaf ? `selectNode('${nb.to.replace(/'/g, "\\'")}')` : `navigateTo('${nb.to.replace(/'/g, "\\'")}')`;
     const liIcon = ndIsLeaf ? '📖' : arrow;
     return `<li onclick="${liAction}">${liIcon} ${escHtml(t)}<span class="rel">${escHtml(nb.type)}</span></li>`;
@@ -316,7 +331,7 @@ function openPage(id) {
 }
 function selectNode(id) {
   const n = nodes.get(id);
-  const isK = n && !n.isLayer && n.layer !== 'root';
+  const isK = n && !n.isLayer && !n.isCategory && n.layer !== 'root';
   if (isK) openPage(id);
   if (trail[trail.length-1] !== id) { trail.push(id); if (trail.length > 8) trail = trail.slice(-8); }
   renderBreadcrumb();
