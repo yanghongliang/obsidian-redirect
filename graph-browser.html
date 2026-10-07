@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>高中物理知识图谱浏览器</title>
-<!-- v12 环比例分配+大半径 -->
+<!-- v13 单行小字标签 -->
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;background:#f5f7fa;color:#333;height:100vh;display:flex;flex-direction:column}
@@ -218,24 +218,29 @@ function render(centerId) {
     const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
     g.setAttribute('class', 'node');
     g.setAttribute('transform', `translate(${x},${y})`);
-    // 标签参数：密集用紧凑版
-    const maxCh = compact ? 5 : 8;
-    const fs = compact ? 9 : 11;
-    const lh = compact ? 12 : 14;
-    const maxLines = compact ? 4 : 6;
-    const lines = wrapText(title, maxCh).slice(0, maxLines);
-    const maxLen = Math.max(...lines.map(l => l.length), 1);
-    const labelW = maxLen * fs + 8, labelH = lines.length * lh + 4;
-    // 标签在节点上方：中心位于 (0, -(14 + labelH/2))
-    const labelCy = -(14 + labelH / 2);
-    const dotR = compact ? 9 : 14;
+    const dotR = compact ? 8 : 14;
     let inner = `<circle r="${dotR}" fill="${col}"><title>${escHtml(title)}</title></circle>`;
-    inner += `<g transform="translate(0,${labelCy})">`;
-    inner += `<rect x="${-labelW/2}" y="${-labelH/2}" width="${labelW}" height="${labelH}" rx="3" fill="rgba(255,255,255,0.94)" stroke="#ccc" stroke-width="0.5"/>`;
-    lines.forEach((ln, i) => {
-      inner += `<text y="${(i - (lines.length - 1) / 2) * lh + 3}" text-anchor="middle" fill="#333" font-size="${fs}">${escHtml(ln)}</text>`;
-    });
-    inner += `</g>`;
+    if (compact) {
+      // 紧凑：单行小字，始终在节点上方
+      const fs = 8;
+      const labelW = title.length * fs + 8, labelH = 16;
+      const labelCy = -(dotR + labelH / 2 + 2);
+      inner += `<g transform="translate(0,${labelCy})">`;
+      inner += `<rect x="${-labelW/2}" y="${-labelH/2}" width="${labelW}" height="${labelH}" rx="3" fill="rgba(255,255,255,0.96)" stroke="#bbb" stroke-width="0.5"/>`;
+      inner += `<text y="3" text-anchor="middle" fill="#333" font-size="${fs}">${escHtml(title)}</text>`;
+      inner += `</g>`;
+    } else {
+      // 单环：多行大字标签在下方
+      const lines = wrapText(title, 8).slice(0, 6);
+      const fs = 11, lh = 14;
+      const maxLen = Math.max(...lines.map(l => l.length), 1);
+      const labelW = maxLen * fs + 10, labelH = lines.length * lh + 6;
+      const labelY = 20;
+      inner += `<rect x="${-labelW/2}" y="${labelY}" width="${labelW}" height="${labelH}" rx="4" fill="rgba(255,255,255,0.92)" stroke="#ddd" stroke-width="0.5"/>`;
+      lines.forEach((ln, i) => {
+        inner += `<text y="${labelY + 12 + i * lh}" text-anchor="middle" fill="#333" font-size="${fs}">${escHtml(ln)}</text>`;
+      });
+    }
     g.innerHTML = inner;
     g.onclick = (e) => { e.stopPropagation(); if (isLeaf) { selectNode(tid); } else { navigateTo(tid); } };
     vp.appendChild(g);
