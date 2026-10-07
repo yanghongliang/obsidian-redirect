@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>高中物理知识图谱浏览器</title>
-<!-- v4 完整标签+直达笔记 -->
+<!-- v5 密集自适应+直达笔记 -->
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;background:#f5f7fa;color:#333;height:100vh;display:flex;flex-direction:column}
@@ -172,8 +172,9 @@ function render(centerId) {
     return la - lb;
   });
 
-  const R = Math.min(W, H) * 0.36;
   const total = neighbors.length;
+  const dense = total > 16; // 密集模式：只显示圆点，标签悬停查看
+  const R = dense ? Math.min(W, H) * 0.42 : Math.min(W, H) * 0.36;
 
   // 箭头
   const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
@@ -198,8 +199,8 @@ function render(centerId) {
   gC.onclick = () => showInfo(centerId);
   vp.appendChild(gC);
 
-  // 邻居
-  const maxShow = 40; // 最多显示40个，避免过密
+  // 邻居（自适应：稀疏显示完整标签，密集只显示圆点）
+  const maxShow = dense ? 60 : 24;
   const showList = neighbors.slice(0, maxShow);
   showList.forEach((nb, idx) => {
     const angle = (2 * Math.PI * idx / showList.length) - Math.PI / 2;
@@ -215,36 +216,49 @@ function render(centerId) {
     if (nb.dir === 'out') line.setAttribute('marker-end', 'url(#arrow)');
     vp.appendChild(line);
 
-    const mx = (cx + x) / 2, my = (cy + y) / 2;
-    const lbl = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-    lbl.setAttribute('x', mx); lbl.setAttribute('y', my - 22);
-    lbl.setAttribute('text-anchor', 'middle'); lbl.setAttribute('class', 'edge-label');
-    lbl.textContent = nb.type;
-    vp.appendChild(lbl);
+    // 稀疏模式才显示边关系标签
+    if (!dense) {
+      const mx = (cx + x) / 2, my = (cy + y) / 2;
+      const lbl = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+      lbl.setAttribute('x', mx); lbl.setAttribute('y', my - 22);
+      lbl.setAttribute('text-anchor', 'middle'); lbl.setAttribute('class', 'edge-label');
+      lbl.textContent = nb.type;
+      vp.appendChild(lbl);
+    }
 
     const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
     g.setAttribute('class', 'node');
     g.setAttribute('transform', `translate(${x},${y})`);
-    // 小圆圈 + 下方完整文字标签
-    const lines = wrapText(title, 8);
-    const fs = 11, lh = 14;
-    const maxLen = Math.max(...lines.map(l => l.length));
-    const labelW = maxLen * fs + 10, labelH = lines.length * lh + 6;
-    const labelY = 20; // 标签起始（圆圈下方）
-    let inner = `<circle r="14" fill="${col}"/>`;
-    // 白色背景
-    inner += `<rect x="${-labelW/2}" y="${labelY}" width="${labelW}" height="${labelH}" rx="4" fill="rgba(255,255,255,0.92)" stroke="#ddd" stroke-width="0.5"/>`;
-    lines.forEach((ln, i) => {
-      inner += `<text y="${labelY + 12 + i * lh}" text-anchor="middle" fill="#333" font-size="${fs}">${escHtml(ln)}</text>`;
-    });
-    g.innerHTML = inner;
     const tid = nb.to;
     const isLeaf = nd && !nd.isLayer;
+    if (dense) {
+      // 密集：小圆点，悬停显示全名
+      g.innerHTML = `<circle r="9" fill="${col}"><title>${escHtml(title)}</title></circle>`;
+    } else {
+      // 稀疏：小圆圈 + 下方完整文字标签
+      const lines = wrapText(title, 8);
+      const fs = 11, lh = 14;
+      const maxLen = Math.max(...lines.map(l => l.length));
+      const labelW = maxLen * fs + 10, labelH = lines.length * lh + 6;
+      const labelY = 20;
+      let inner = `<circle r="14" fill="${col}"><title>${escHtml(title)}</title></circle>`;
+      inner += `<rect x="${-labelW/2}" y="${labelY}" width="${labelW}" height="${labelH}" rx="4" fill="rgba(255,255,255,0.92)" stroke="#ddd" stroke-width="0.5"/>`;
+      lines.forEach((ln, i) => {
+        inner += `<text y="${labelY + 12 + i * lh}" text-anchor="middle" fill="#333" font-size="${fs}">${escHtml(ln)}</text>`;
+      });
+      g.innerHTML = inner;
+    }
     g.onclick = (e) => { e.stopPropagation(); if (isLeaf) { openPage(tid); } else { navigateTo(tid); } };
     vp.appendChild(g);
   });
 
-  if (neighbors.length > maxShow) {
+  if (dense) {
+    const tip = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+    tip.setAttribute('x', cx); tip.setAttribute('y', cy + R + 30);
+    tip.setAttribute('text-anchor', 'middle'); tip.setAttribute('font-size', '12'); tip.setAttribute('fill', '#999');
+    tip.textContent = `共 ${neighbors.length} 个节点 · 悬停圆点查看名称 · 右侧列表可直接打开`;
+    vp.appendChild(tip);
+  } else if (neighbors.length > maxShow) {
     const more = document.createElementNS('http://www.w3.org/2000/svg', 'text');
     more.setAttribute('x', cx); more.setAttribute('y', cy + R + 40);
     more.setAttribute('text-anchor', 'middle'); more.setAttribute('font-size', '12'); more.setAttribute('fill', '#999');
