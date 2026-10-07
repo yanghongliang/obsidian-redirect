@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>高中物理知识图谱浏览器</title>
-<!-- v7 网格列表防拥挤+虚拟节点修复 -->
+<!-- v8 点击更新侧栏 -->
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;background:#f5f7fa;color:#333;height:100vh;display:flex;flex-direction:column}
@@ -180,7 +180,7 @@ function render(centerId) {
       const col = nd ? LAYER_COLORS[nd.layer] : '#999';
       const leaf = nd && !nd.isLayer && nd.layer !== 'root';
       const icon = leaf ? '📖' : '📁';
-      const act = leaf ? `openPage('${nb.to.replace(/'/g, "\\'")}')` : `navigateTo('${nb.to.replace(/'/g, "\\'")}')`;
+      const act = leaf ? `selectNode('${nb.to.replace(/'/g, "\\'")}')` : `navigateTo('${nb.to.replace(/'/g, "\\'")}')`;
       return `<button onclick="${act}" title="${escHtml(t)}" style="padding:8px 12px;border:1px solid #ddd;border-left:4px solid ${col};border-radius:8px;background:#f8f9fa;font-size:13px;cursor:pointer;max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${icon} ${escHtml(t)}</button>`;
     }).join('');
     showInfo(centerId, neighbors);
@@ -261,7 +261,7 @@ function render(centerId) {
       });
       g.innerHTML = inner;
     }
-    g.onclick = (e) => { e.stopPropagation(); if (isLeaf) { openPage(tid); } else { navigateTo(tid); } };
+    g.onclick = (e) => { e.stopPropagation(); if (isLeaf) { selectNode(tid); } else { navigateTo(tid); } };
     vp.appendChild(g);
   }
 
@@ -309,7 +309,7 @@ function showInfo(id, neighbors) {
     const arrow = nb.dir === 'out' ? '→' : '←';
     const t = nd ? nd.title : nb.to;
     const ndIsLeaf = nd && !nd.isLayer && nd.layer !== 'root';
-    const liAction = ndIsLeaf ? `openPage('${nb.to.replace(/'/g, "\\'")}')` : `navigateTo('${nb.to.replace(/'/g, "\\'")}')`;
+    const liAction = ndIsLeaf ? `selectNode('${nb.to.replace(/'/g, "\\'")}')` : `navigateTo('${nb.to.replace(/'/g, "\\'")}')`;
     const liIcon = ndIsLeaf ? '📖' : arrow;
     return `<li onclick="${liAction}">${liIcon} ${escHtml(t)}<span class="rel">${escHtml(nb.type)}</span></li>`;
   }).join('') || '<li style="color:#999">暂无相连节点</li>';
@@ -318,6 +318,14 @@ function showInfo(id, neighbors) {
 function openPage(id) {
   const url = 'https://yanghongliang.github.io/obsidian-redirect/#file=' + encodeURIComponent(id + '.md');
   window.open(url, '_blank');
+}
+function selectNode(id) {
+  const n = nodes.get(id);
+  const isK = n && !n.isLayer && n.layer !== 'root';
+  if (isK) openPage(id);
+  if (trail[trail.length-1] !== id) { trail.push(id); if (trail.length > 8) trail = trail.slice(-8); }
+  renderBreadcrumb();
+  showInfo(id);
 }
 function expandNode(id) {
   // 在图中展开该节点的分支（不打开页面）
@@ -345,6 +353,7 @@ window.goToTrail = goToTrail;
 window.navigateTo = navigateTo;
 window.doSearch = doSearch;
 window.openPage = openPage;
+window.selectNode = selectNode;
 window.expandNode = expandNode;
 </script>
 </body>
