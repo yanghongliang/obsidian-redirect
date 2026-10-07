@@ -20,25 +20,55 @@ button:active { opacity: 0.8; }
 <p id="msg">如果没有自动跳转，请点下面的按钮</p>
 <button id="btn" style="display:none">在 Obsidian 中打开</button>
 </div>
+<div class="card" id="vaultCard" style="max-width:340px;margin-top:0;">
+<p style="font-size:13px;margin:0 0 8px;">Obsidian 仓库名：<b id="vaultName"></b> <a href="#" id="changeVault" style="font-size:12px;">修改</a></p>
+</div>
 <script>
-function getFile() {
-  var h = location.hash;
-  if (h && h.indexOf('#file=') === 0) return decodeURIComponent(h.slice(6));
-  var m = location.search.match(/[?&]file=([^&]*)/);
+function getParam(name) {
+  var m = location.search.match(new RegExp('[?&]' + name + '=([^&]*)'));
   if (m) return decodeURIComponent(m[1]);
+  var h = location.hash;
+  var hm = h.match(new RegExp('[#&]' + name + '=([^&]*)'));
+  if (hm) return decodeURIComponent(hm[1]);
   return null;
 }
+function getFile() {
+  var h = location.hash;
+  // hash格式: #file=xxx 或 #vault=yyy&file=xxx
+  var fm = h.match(/[#&]file=([^&]*)/);
+  if (fm) return decodeURIComponent(fm[1]);
+  return getParam('file');
+}
+// vault优先级: URL参数 > localStorage > 默认
+var vault = getParam('vault') || localStorage.getItem('obsidian_vault') || 'GaokaoPhysicsKB';
+if (getParam('vault')) localStorage.setItem('obsidian_vault', vault);
+document.getElementById('vaultName').textContent = vault;
+document.getElementById('changeVault').onclick = function(e) {
+  e.preventDefault();
+  var v = prompt('请输入 Obsidian 仓库名称：', vault);
+  if (v && v.trim()) {
+    vault = v.trim();
+    localStorage.setItem('obsidian_vault', vault);
+    document.getElementById('vaultName').textContent = vault;
+    updateDeep();
+  }
+};
 var file = getFile();
 var btn = document.getElementById('btn');
 var msg = document.getElementById('msg');
+var deep = null;
+function updateDeep() {
+  if (!file) return;
+  deep = 'obsidian://open?vault=' + encodeURIComponent(vault) + '&file=' + encodeURIComponent(file);
+}
 if (!file) {
   document.querySelector('h1').textContent = '没有找到笔记路径';
   msg.innerHTML = '<span class="err">请从带有 file 参数的知识库链接进入。</span>';
+  document.getElementById('vaultCard').style.display = 'none';
 } else {
-  var deep = 'obsidian://open?vault=' + encodeURIComponent('GaokaoPhysicsKB') + '&file=' + encodeURIComponent(file);
+  updateDeep();
   btn.style.display = '';
-  btn.onclick = function() { window.location.href = deep; };
-  // 自动尝试一次（无手势可能被拦截，按钮是兜底）
+  btn.onclick = function() { updateDeep(); window.location.href = deep; };
   setTimeout(function() { window.location.href = deep; }, 300);
 }
 </script>
