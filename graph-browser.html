@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>高中物理知识图谱浏览器</title>
-<!-- v14 子目录分类节点 -->
+<!-- v15 思维导图树形视图 -->
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;background:#f5f7fa;color:#333;height:100vh;display:flex;flex-direction:column}
@@ -50,7 +50,13 @@ svg{width:100%;height:100%;display:block}
 <button id="searchBtn" onclick="doSearch()">搜索</button>
 </div>
 </header>
-<div id="breadcrumb"></div>
+<div style="display:flex;align-items:center;gap:12px;padding:8px 20px;background:#e8f0fe;">
+<div id="viewTabs" style="display:flex;gap:6px;">
+<button id="tabTree" onclick="switchView('tree')" style="padding:6px 16px;border:none;border-radius:6px;background:#1a73e8;color:#fff;font-size:13px;font-weight:600;cursor:pointer;">🌳 思维导图</button>
+<button id="tabGraph" onclick="switchView('graph')" style="padding:6px 16px;border:none;border-radius:6px;background:#fff;color:#1a73e8;font-size:13px;cursor:pointer;">🕸️ 关系网</button>
+</div>
+<div id="breadcrumb" style="flex:1;"></div>
+</div>
 <div id="main">
 <div id="graph">
 <svg id="svg"></svg>
@@ -358,7 +364,145 @@ function doSearch() {
   document.getElementById('nodeInfo').innerHTML = `<p>找到 ${hits.length} 个匹配"${escHtml(q)}"的节点，点击进入：</p>`;
 }
 
-window.onload = () => { render(ROOT_ID); };
+
+// ===== 思维导图（树形）视图 =====
+let currentView = 'tree';
+let treeData = null;
+
+function buildHierarchy() {
+  const root = {id: ROOT_ID, title: '高中物理', layer: 'root', children: [], collapsed: false};
+  const layerMap = {};
+  Object.keys(layerNodes).forEach(k => {
+    const lid = layerNodes[k];
+    const ln = nodes.get(lid);
+    const lnode = {id: lid, title: ln.title, layer: k, isLayer: true, children: [], collapsed: true};
+    layerMap[k] = lnode;
+    root.children.push(lnode);
+  });
+  // 分类节点
+  const catMap = {};
+  nodes.forEach(n => {
+    if (n.isCategory) {
+      const cnode = {id: n.id, title: n.title, layer: n.layer, isCategory: true, children: [], collapsed: true};
+      catMap[n.id] = cnode;
+      if (layerMap[n.layer]) layerMap[n.layer].children.push(cnode);
+    }
+  });
+  // 知识节点挂到分类或层下
+  GRAPH_DATA.nodes.forEach(n => {
+    const parts = n.id.split('/');
+    const knode = {id: n.id, title: n.title, layer: n.layer, children: [], isLeaf: true};
+    if (parts.length > 2) {
+      const catId = '__CAT_' + n.layer + '_' + parts[1] + '__';
+      if (catMap[catId]) catMap[catId].children.push(knode);
+      else if (layerMap[n.layer]) layerMap[n.layer].children.push(knode);
+    } else {
+      if (layerMap[n.layer]) layerMap[n.layer].children.push(knode);
+    }
+  });
+  // 排序：按标题
+  function sortChildren(nd) {
+    if (nd.children) {
+      nd.children.sort((a, b) => a.title.localeCompare(b.title, 'zh'));
+      nd.children.forEach(sortChildren);
+    }
+  }
+  sortChildren(root);
+  return root;
+}
+
+function switchView(v) {
+  currentView = v;
+  document.getElementById('tabTree').style.background = v === 'tree' ? '#1a73e8' : '#fff';
+  document.getElementById('tabTree').style.color = v === 'tree' ? '#fff' : '#1a73e8';
+  document.getElementById('tabGraph').style.background = v === 'graph' ? '#1a73e8' : '#fff';
+  document.getElementById('tabGraph').style.color = v === 'graph' ? '#fff' : '#1a73e8';
+  if (v === 'tree') renderTree();
+  else render(trail[trail.length - 1] || ROOT_ID);
+}
+
+function renderTree() {
+  if (!treeData) treeData = buildHierarchy();
+  renderBreadcrumb();
+  const svgEl = document.getElementById('svg');
+  svgEl.style.display = 'block';
+  svgEl.innerHTML = '<g id="viewport"></g>';
+  const vp = svgEl.querySelector('#viewport');
+
+  // 布局：计算每个可见节点的位置
+  const rowH = 34, colW = 280;
+  let yCount = 0;
+  function layout(nd, depth) {
+    nd.x = depth * colW + 20;
+    const kids = nd.collapsed ? [] : (nd.children || []);
+    if (kids.length === 0) {
+      nd.y = yCount * rowH + 30;
+      yCount++;
+    } else {
+      kids.forEach(k => layout(k, depth + 1));
+      nd.y = (kids[0].y + kids[kids.length - 1].y) / 2;
+    }
+    nd._kids = kids;
+  }
+  layout(treeData, 0);
+  const totalH = yCount * rowH + 60;
+
+  // 绘制连线和节点
+  function draw(nd) {
+    (nd._kids || []).forEach(k => {
+      // 贝塞尔连线
+      const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+      const x1 = nd.x + (nd._w || 170), y1 = nd.y, x2 = k.x, y2 = k.y;
+      const mx = (x1 + x2) / 2;
+      path.setAttribute('d', `M${x1},${y1} C${mx},${y1} ${mx},${y2} ${x2},${y2}`);
+      path.setAttribute('stroke', '#bbb'); path.setAttribute('fill', 'none'); path.setAttribute('stroke-width', '1.5');
+      vp.appendChild(path);
+      draw(k);
+    });
+    const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+    g.setAttribute('class', 'node');
+    g.setAttribute('transform', `translate(${nd.x},${nd.y})`);
+    const col = LAYER_COLORS[nd.layer] || '#999';
+    const hasKids = (nd.children || []).length > 0;
+    // 宽度自适应全名
+    const tw = nd.title.length * 12 + (hasKids ? 44 : 28);
+    const w = Math.max(tw, 60), h = 26;
+    let inner = `<rect x="0" y="${-h/2}" width="${w}" height="${h}" rx="6" fill="${hasKids ? col : '#fff'}" stroke="${col}" stroke-width="1.5"/>`;
+    const tcol = hasKids ? '#fff' : '#333';
+    inner += `<text x="10" y="5" fill="${tcol}" font-size="12">${escHtml(nd.title)}</text>`;
+    if (hasKids) {
+      inner += `<text x="${w - 18}" y="5" fill="${tcol}" font-size="12">${nd.collapsed ? '▶' : '▼'}</text>`;
+    }
+    if (nd.isLeaf) {
+      inner += `<text x="${w + 6}" y="5" fill="#1a73e8" font-size="11">📖</text>`;
+    }
+    g.innerHTML = inner;
+    // 记录节点右边界，供连线使用
+    nd._w = w;
+    g.onclick = (e) => {
+      e.stopPropagation();
+      if (nd.isLeaf) { selectNode(nd.id); }
+      else { nd.collapsed = !nd.collapsed; renderTree(); }
+    };
+    // 双击叶子也展开关系网
+    vp.appendChild(g);
+  }
+  draw(treeData);
+
+  // 调整SVG高度
+  svgEl.style.height = Math.max(totalH, 600) + 'px';
+  svgEl.setAttribute('height', Math.max(totalH, 600));
+  transform = {x: 0, y: 0, k: 1};
+  applyTransform();
+  // 侧栏提示
+  document.getElementById('nodeInfo').innerHTML = '<p style="color:#666;font-size:13px;">🌳 点击 <b>▶</b> 展开分支，点击节点名直达笔记<br>📖 图标表示可打开对应笔记</p>';
+  document.getElementById('neighborTitle').childNodes[0].textContent = '🌿 相连节点 ';
+  document.getElementById('neighborCount').textContent = '';
+  document.getElementById('neighbors').innerHTML = '<li style="color:#999">在左侧树中选择节点查看</li>';
+}
+
+window.onload = () => { renderTree(); };
+window.switchView = switchView;
 window.goToTrail = goToTrail;
 window.navigateTo = navigateTo;
 window.doSearch = doSearch;
