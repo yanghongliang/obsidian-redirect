@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>高中物理知识图谱浏览器</title>
-<!-- v5 密集自适应+直达笔记 -->
+<!-- v6 双环径向标签 -->
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;background:#f5f7fa;color:#333;height:100vh;display:flex;flex-direction:column}
@@ -199,15 +199,17 @@ function render(centerId) {
   gC.onclick = () => showInfo(centerId);
   vp.appendChild(gC);
 
-  // 邻居（自适应：稀疏显示完整标签，密集只显示圆点）
-  const maxShow = dense ? 60 : 24;
+  // 邻居（自适应布局）
+  const maxShow = dense ? 48 : 24;
   const showList = neighbors.slice(0, maxShow);
-  showList.forEach((nb, idx) => {
-    const angle = (2 * Math.PI * idx / showList.length) - Math.PI / 2;
-    const x = cx + R * Math.cos(angle), y = cy + R * Math.sin(angle);
+
+  // 绘制单个邻居节点的 helper
+  function drawNeighbor(nb, x, y, labelMode) {
     const nd = nodes.get(nb.to);
     const col = nd ? LAYER_COLORS[nd.layer] : '#999';
     const title = nd ? nd.title : nb.to;
+    const tid = nb.to;
+    const isLeaf = nd && !nd.isLayer;
 
     const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
     line.setAttribute('x1', cx); line.setAttribute('y1', cy);
@@ -216,26 +218,37 @@ function render(centerId) {
     if (nb.dir === 'out') line.setAttribute('marker-end', 'url(#arrow)');
     vp.appendChild(line);
 
-    // 稀疏模式才显示边关系标签
-    if (!dense) {
+    const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+    g.setAttribute('class', 'node');
+    g.setAttribute('transform', `translate(${x},${y})`);
+
+    if (labelMode === 'radial') {
+      // 密集：圆点 + 标签沿径向外放（远离圆心），避免互相遮挡
+      const ang = Math.atan2(y - cy, x - cx);
+      const lr = 30; // 标签距离圆点的径向偏移
+      const lx = lr * Math.cos(ang), ly = lr * Math.sin(ang);
+      const lines = wrapText(title, 6);
+      const fs = 10, lh = 13;
+      const maxLen = Math.max(...lines.map(l => l.length));
+      const labelW = maxLen * fs + 8, labelH = lines.length * lh + 4;
+      let inner = `<circle r="8" fill="${col}"><title>${escHtml(title)}</title></circle>`;
+      // 标签组：以(lx,ly)为中心
+      inner += `<g transform="translate(${lx},${ly})">`;
+      inner += `<rect x="${-labelW/2}" y="${-labelH/2}" width="${labelW}" height="${labelH}" rx="3" fill="rgba(255,255,255,0.94)" stroke="#ccc" stroke-width="0.5"/>`;
+      lines.forEach((ln, i) => {
+        inner += `<text y="${(i - (lines.length-1)/2) * lh + 4}" text-anchor="middle" fill="#333" font-size="${fs}">${escHtml(ln)}</text>`;
+      });
+      inner += `</g>`;
+      g.innerHTML = inner;
+    } else {
+      // 稀疏：圆圈 + 下方完整标签 + 边关系
       const mx = (cx + x) / 2, my = (cy + y) / 2;
       const lbl = document.createElementNS('http://www.w3.org/2000/svg', 'text');
       lbl.setAttribute('x', mx); lbl.setAttribute('y', my - 22);
       lbl.setAttribute('text-anchor', 'middle'); lbl.setAttribute('class', 'edge-label');
       lbl.textContent = nb.type;
       vp.appendChild(lbl);
-    }
 
-    const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
-    g.setAttribute('class', 'node');
-    g.setAttribute('transform', `translate(${x},${y})`);
-    const tid = nb.to;
-    const isLeaf = nd && !nd.isLayer;
-    if (dense) {
-      // 密集：小圆点，悬停显示全名
-      g.innerHTML = `<circle r="9" fill="${col}"><title>${escHtml(title)}</title></circle>`;
-    } else {
-      // 稀疏：小圆圈 + 下方完整文字标签
       const lines = wrapText(title, 8);
       const fs = 11, lh = 14;
       const maxLen = Math.max(...lines.map(l => l.length));
@@ -250,7 +263,28 @@ function render(centerId) {
     }
     g.onclick = (e) => { e.stopPropagation(); if (isLeaf) { openPage(tid); } else { navigateTo(tid); } };
     vp.appendChild(g);
-  });
+  }
+
+  if (dense) {
+    // 双环布局：内圈一半，外圈一半，标签径向外放
+    const half = Math.ceil(showList.length / 2);
+    const r1 = R * 0.55, r2 = R * 0.95;
+    showList.forEach((nb, idx) => {
+      const isOuter = idx >= half;
+      const ringNodes = isOuter ? showList.slice(half) : showList.slice(0, half);
+      const ringIdx = isOuter ? idx - half : idx;
+      const radius = isOuter ? r2 : r1;
+      const angle = (2 * Math.PI * ringIdx / ringNodes.length) - Math.PI / 2;
+      const x = cx + radius * Math.cos(angle), y = cy + radius * Math.sin(angle);
+      drawNeighbor(nb, x, y, 'radial');
+    });
+  } else {
+    showList.forEach((nb, idx) => {
+      const angle = (2 * Math.PI * idx / showList.length) - Math.PI / 2;
+      const x = cx + R * Math.cos(angle), y = cy + R * Math.sin(angle);
+      drawNeighbor(nb, x, y, 'full');
+    });
+  }
 
   if (dense) {
     const tip = document.createElementNS('http://www.w3.org/2000/svg', 'text');
