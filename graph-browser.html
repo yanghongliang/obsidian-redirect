@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>高中物理知识图谱浏览器</title>
-<!-- v11 环间半步距交错 -->
+<!-- v12 环比例分配+大半径 -->
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;background:#f5f7fa;color:#333;height:100vh;display:flex;flex-direction:column}
@@ -178,7 +178,7 @@ function render(centerId) {
   const vp = svg.querySelector('#viewport');
   const W = svg.clientWidth || 900, H = svg.clientHeight || 600;
   const cx = W / 2, cy = H / 2;
-  const R = Math.min(W, H) * 0.38;
+  const R = Math.min(W, H) * 0.44;
 
   const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
   defs.innerHTML = '<marker id="arrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 Z" fill="#999"/></marker>';
@@ -249,14 +249,16 @@ function render(centerId) {
       drawNb(nb, cx + R * Math.cos(angle), cy + R * Math.sin(angle), false);
     });
   } else {
-    // 多环：均分节点到各环
-    const perRing = Math.ceil(showList.length / ringCount);
-    const radii = ringCount === 2 ? [R * 0.55, R * 0.95] : [R * 0.42, R * 0.68, R * 0.94];
+    // 多环：按周长比例分配（内圈少、外圈多），环间距拉大
+    const ratios = ringCount === 2 ? [0.35, 0.65] : [0.22, 0.33, 0.45];
+    const radii = ringCount === 2 ? [R * 0.52, R * 0.95] : [R * 0.40, R * 0.68, R * 0.96];
+    let startIdx = 0;
     for (let r = 0; r < ringCount; r++) {
-      const ringNodes = showList.slice(r * perRing, (r + 1) * perRing);
+      const count = r === ringCount - 1 ? showList.length - startIdx : Math.round(showList.length * ratios[r]);
+      const ringNodes = showList.slice(startIdx, startIdx + count);
+      startIdx += count;
       const step = 2 * Math.PI / ringNodes.length;
       ringNodes.forEach((nb, idx) => {
-        // 每环错开半步距，与相邻环的节点交错
         const angle = idx * step - Math.PI / 2 + r * step / 2;
         drawNb(nb, cx + radii[r] * Math.cos(angle), cy + radii[r] * Math.sin(angle), true);
       });
