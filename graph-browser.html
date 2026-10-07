@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>高中物理知识图谱浏览器</title>
+<!-- v4 完整标签+直达笔记 -->
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;background:#f5f7fa;color:#333;height:100vh;display:flex;flex-direction:column}
@@ -134,7 +135,7 @@ function wrapText(text, maxPerLine) {
     if (cur.length >= maxPerLine) { lines.push(cur); cur = ''; }
   }
   if (cur) lines.push(cur);
-  return lines.slice(0, 4); // 最多4行
+  return lines.slice(0, 6); // 最多6行，完整显示
 }
 
 const svg = document.getElementById('svg');
@@ -183,10 +184,15 @@ function render(centerId) {
   const gC = document.createElementNS('http://www.w3.org/2000/svg', 'g');
   gC.setAttribute('class', 'node center');
   gC.setAttribute('transform', `translate(${cx},${cy})`);
-  const cLines = wrapText(center.title, 8);
-  let cInner = `<circle r="42" fill="${LAYER_COLORS[center.layer]}"/>`;
+  const cLines = wrapText(center.title, 10);
+  const cfs = 13, clh = 16;
+  const cMaxLen = Math.max(...cLines.map(l => l.length));
+  const cLabelW = cMaxLen * cfs + 12, cLabelH = cLines.length * clh + 8;
+  const cLabelY = 26;
+  let cInner = `<circle r="18" fill="${LAYER_COLORS[center.layer]}"/>`;
+  cInner += `<rect x="${-cLabelW/2}" y="${cLabelY}" width="${cLabelW}" height="${cLabelH}" rx="5" fill="rgba(255,255,255,0.95)" stroke="#ff5722" stroke-width="1"/>`;
   cLines.forEach((ln, i) => {
-    cInner += `<text y="${(i - (cLines.length - 1) / 2) * 14 + 5}" text-anchor="middle" fill="#fff" font-size="12" font-weight="bold">${escHtml(ln)}</text>`;
+    cInner += `<text y="${cLabelY + 14 + i * clh}" text-anchor="middle" fill="#222" font-size="${cfs}" font-weight="bold">${escHtml(ln)}</text>`;
   });
   gC.innerHTML = cInner;
   gC.onclick = () => showInfo(centerId);
@@ -219,10 +225,17 @@ function render(centerId) {
     const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
     g.setAttribute('class', 'node');
     g.setAttribute('transform', `translate(${x},${y})`);
-    const lines = wrapText(title, 7);
-    let inner = `<circle r="30" fill="${col}"/>`;
+    // 小圆圈 + 下方完整文字标签
+    const lines = wrapText(title, 8);
+    const fs = 11, lh = 14;
+    const maxLen = Math.max(...lines.map(l => l.length));
+    const labelW = maxLen * fs + 10, labelH = lines.length * lh + 6;
+    const labelY = 20; // 标签起始（圆圈下方）
+    let inner = `<circle r="14" fill="${col}"/>`;
+    // 白色背景
+    inner += `<rect x="${-labelW/2}" y="${labelY}" width="${labelW}" height="${labelH}" rx="4" fill="rgba(255,255,255,0.92)" stroke="#ddd" stroke-width="0.5"/>`;
     lines.forEach((ln, i) => {
-      inner += `<text y="${(i - (lines.length - 1) / 2) * 13 + 4}" text-anchor="middle" fill="#fff" font-size="10.5">${escHtml(ln)}</text>`;
+      inner += `<text y="${labelY + 12 + i * lh}" text-anchor="middle" fill="#333" font-size="${fs}">${escHtml(ln)}</text>`;
     });
     g.innerHTML = inner;
     const tid = nb.to;
