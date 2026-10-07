@@ -226,7 +226,8 @@ function render(centerId) {
     });
     g.innerHTML = inner;
     const tid = nb.to;
-    g.onclick = (e) => { e.stopPropagation(); navigateTo(tid); };
+    const isLeaf = nd && !nd.isLayer;
+    g.onclick = (e) => { e.stopPropagation(); if (isLeaf) { openPage(tid); } else { navigateTo(tid); } };
     vp.appendChild(g);
   });
 
@@ -248,10 +249,16 @@ function showInfo(id, neighbors) {
   if (!n) return;
   neighbors = neighbors || adj.get(id) || [];
   const tag = n.layer === 'root' ? '根节点' : (n.isLayer ? '层节点' : `${n.layer}层·${LAYER_NAMES[n.layer]}`);
+  const isKnowledge = !n.isLayer && n.layer !== 'root';
+  const openBtn = isKnowledge
+    ? `<button onclick="openPage('${n.id.replace(/'/g, "\\'")}')" style="margin-top:8px;padding:8px 16px;background:#1a73e8;color:#fff;border:none;border-radius:6px;font-size:13px;font-weight:600;cursor:pointer;width:100%">📖 打开对应笔记</button>
+       <button onclick="expandNode('${n.id.replace(/'/g, "\\'")}')" style="margin-top:6px;padding:8px 16px;background:#e8f0fe;color:#1a73e8;border:1px solid #1a73e8;border-radius:6px;font-size:13px;cursor:pointer;width:100%">🌿 在图中展开关系网</button>`
+    : '';
   document.getElementById('nodeInfo').innerHTML = `
     <p><span class="layer-tag" style="background:${LAYER_COLORS[n.layer]}">${tag}</span></p>
     <p style="font-weight:600;margin:6px 0;font-size:14px">${escHtml(n.title)}</p>
     ${n.isLayer || n.layer === 'root' ? '' : `<p style="color:#666;font-size:12px;word-break:break-all">${escHtml(n.id)}.md</p>`}
+    ${openBtn}
   `;
   document.getElementById('neighborTitle').childNodes[0].textContent = '🌿 相连节点 ';
   document.getElementById('neighborCount').textContent = `(${neighbors.length})`;
@@ -260,10 +267,23 @@ function showInfo(id, neighbors) {
     const nd = nodes.get(nb.to);
     const arrow = nb.dir === 'out' ? '→' : '←';
     const t = nd ? nd.title : nb.to;
-    return `<li onclick="navigateTo('${nb.to.replace(/'/g, "\\'")}')">${arrow} ${escHtml(t)}<span class="rel">${escHtml(nb.type)}</span></li>`;
+    const ndIsLeaf = nd && !nd.isLayer && nd.layer !== 'root';
+    const liAction = ndIsLeaf ? `openPage('${nb.to.replace(/'/g, "\\'")}')` : `navigateTo('${nb.to.replace(/'/g, "\\'")}')`;
+    const liIcon = ndIsLeaf ? '📖' : arrow;
+    return `<li onclick="${liAction}">${liIcon} ${escHtml(t)}<span class="rel">${escHtml(nb.type)}</span></li>`;
   }).join('') || '<li style="color:#999">暂无相连节点</li>';
 }
 
+function openPage(id) {
+  const url = 'https://yanghongliang.github.io/obsidian-redirect/#file=' + encodeURIComponent(id + '.md');
+  window.open(url, '_blank');
+}
+function expandNode(id) {
+  // 在图中展开该节点的分支（不打开页面）
+  const cur = trail[trail.length - 1];
+  if (cur !== id) { trail.push(id); if (trail.length > 8) trail = trail.slice(-8); }
+  render(id);
+}
 function doSearch() {
   const q = document.getElementById('searchInput').value.trim();
   if (!q) return;
@@ -283,6 +303,8 @@ window.onload = () => { render(ROOT_ID); };
 window.goToTrail = goToTrail;
 window.navigateTo = navigateTo;
 window.doSearch = doSearch;
+window.openPage = openPage;
+window.expandNode = expandNode;
 </script>
 </body>
 </html>
