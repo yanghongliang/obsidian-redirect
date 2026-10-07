@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>高中物理知识图谱浏览器</title>
-<!-- v10 自适应多环+标签在上 -->
+<!-- v11 环间半步距交错 -->
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;background:#f5f7fa;color:#333;height:100vh;display:flex;flex-direction:column}
@@ -254,8 +254,10 @@ function render(centerId) {
     const radii = ringCount === 2 ? [R * 0.55, R * 0.95] : [R * 0.42, R * 0.68, R * 0.94];
     for (let r = 0; r < ringCount; r++) {
       const ringNodes = showList.slice(r * perRing, (r + 1) * perRing);
+      const step = 2 * Math.PI / ringNodes.length;
       ringNodes.forEach((nb, idx) => {
-        const angle = (2 * Math.PI * idx / ringNodes.length) - Math.PI / 2 + (r * 0.3);
+        // 每环错开半步距，与相邻环的节点交错
+        const angle = idx * step - Math.PI / 2 + r * step / 2;
         drawNb(nb, cx + radii[r] * Math.cos(angle), cy + radii[r] * Math.sin(angle), true);
       });
     }
