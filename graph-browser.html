@@ -443,12 +443,14 @@ function renderTree() {
   // 布局：计算每个可见节点的位置
   const rowH = 34, colW = 280;
   let yCount = 0, maxX = 0;
+  // 顶部图例占位：移动端图例约40px高，桌面端约30px
+  const topPad = (window.innerWidth < 768) ? 70 : 40;
   function layout(nd, depth) {
     nd.x = depth * colW + 20;
     maxX = Math.max(maxX, nd.x + 200);
     const kids = nd.collapsed ? [] : (nd.children || []);
     if (kids.length === 0) {
-      nd.y = yCount * rowH + 30;
+      nd.y = yCount * rowH + topPad;
       yCount++;
     } else {
       kids.forEach(k => layout(k, depth + 1));
