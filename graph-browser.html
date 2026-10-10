@@ -19,7 +19,7 @@ header .stats{font-size:13px;opacity:.9}
 #breadcrumb span:hover{text-decoration:underline}
 #breadcrumb .sep{color:#999;cursor:default}
 #main{flex:1;display:flex;overflow:hidden}
-#graph{flex:1;position:relative;overflow:hidden;background:#fff}
+#graph{flex:1;position:relative;overflow:auto;background:#fff;-webkit-overflow-scrolling:touch}
 #sidebar{width:320px;background:#fff;border-left:1px solid #e0e0e0;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:12px}
 #sidebar h3{font-size:15px;color:#1a73e8;border-bottom:2px solid #1a73e8;padding-bottom:6px}
 #nodeInfo{font-size:13px;line-height:1.7}
@@ -442,9 +442,10 @@ function renderTree() {
 
   // 布局：计算每个可见节点的位置
   const rowH = 34, colW = 280;
-  let yCount = 0;
+  let yCount = 0, maxX = 0;
   function layout(nd, depth) {
     nd.x = depth * colW + 20;
+    maxX = Math.max(maxX, nd.x + 200);
     const kids = nd.collapsed ? [] : (nd.children || []);
     if (kids.length === 0) {
       nd.y = yCount * rowH + 30;
@@ -457,6 +458,7 @@ function renderTree() {
   }
   layout(treeData, 0);
   const totalH = yCount * rowH + 60;
+  const totalW = maxX + 40;
 
   // 绘制连线和节点
   function draw(nd) {
@@ -500,17 +502,13 @@ function renderTree() {
   }
   draw(treeData);
 
-  // 调整SVG高度
+  // 调整SVG尺寸（宽高都跟随内容，容器可滚动）
   svgEl.style.height = Math.max(totalH, 600) + 'px';
   svgEl.setAttribute('height', Math.max(totalH, 600));
+  svgEl.style.width = Math.max(totalW, svgEl.clientWidth || 800) + 'px';
+  svgEl.setAttribute('width', Math.max(totalW, svgEl.clientWidth || 800));
+  svgEl.style.minWidth = '100%';
   transform = {x: 0, y: 0, k: 1};
-  // 移动端：初始缩放到能看清第一层分支
-  const vw = svgEl.clientWidth || window.innerWidth;
-  if (vw < 768) {
-    // 第一层6个分支在 x≈300，需要至少能看到 x=0~600
-    const fitK = Math.min(1, vw / 620);
-    transform = {x: 10, y: 20, k: fitK};
-  }
   applyTransform();
   // 侧栏提示
   document.getElementById('nodeInfo').innerHTML = '<p style="color:#666;font-size:13px;">🌳 点击 <b>▶</b> 展开分支，点击节点名直达笔记<br>📖 图标表示可打开对应笔记</p>';
