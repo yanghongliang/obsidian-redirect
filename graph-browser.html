@@ -504,6 +504,13 @@ function renderTree() {
   svgEl.style.height = Math.max(totalH, 600) + 'px';
   svgEl.setAttribute('height', Math.max(totalH, 600));
   transform = {x: 0, y: 0, k: 1};
+  // 移动端：初始缩放到能看清第一层分支
+  const vw = svgEl.clientWidth || window.innerWidth;
+  if (vw < 768) {
+    // 第一层6个分支在 x≈300，需要至少能看到 x=0~600
+    const fitK = Math.min(1, vw / 620);
+    transform = {x: 10, y: 20, k: fitK};
+  }
   applyTransform();
   // 侧栏提示
   document.getElementById('nodeInfo').innerHTML = '<p style="color:#666;font-size:13px;">🌳 点击 <b>▶</b> 展开分支，点击节点名直达笔记<br>📖 图标表示可打开对应笔记</p>';
